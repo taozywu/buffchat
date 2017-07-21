@@ -339,7 +339,6 @@ class WebS extends \Swoole\Websocket\Server
         $userData = $redis->hGetAll($fd);
         $user_name = $userData['user_name'];
         $user_group = $userData['group'];
-        echo "\$fd=== " . $fd . "\n";
         $res = $redis->del($fd);
         if ($res === false) {
             echo "删除用户{$user_name}({$fd})失败\n";
