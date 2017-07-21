@@ -51,7 +51,7 @@ class WebS extends \Swoole\Websocket\Server
             $result = $redis->hGetAll($fd);
             if ($result["user_name"] === $user_name) {
                 if ($reload === "yes") {
-                    $redis->del($fd);
+//                    $redis->del($fd);
                     $this->close($fd);
                     return false;
                 }
@@ -141,6 +141,7 @@ class WebS extends \Swoole\Websocket\Server
                 foreach ($this->connections as $tempfd) {
                     $user_info = $redis->hGetAll($tempfd);
                     if ($user_info['user_name'] === $sendTo) {
+                        $mes = str_replace(["\n", '"'], ["\\n", '\"'], $mes);
                         $this->push($tempfd, "{\"code\":\"1\",\"mes\":\"{$mes}\",\"form\":\"{$user_name}\"}");
                         break;
                     }
@@ -338,6 +339,7 @@ class WebS extends \Swoole\Websocket\Server
         $userData = $redis->hGetAll($fd);
         $user_name = $userData['user_name'];
         $user_group = $userData['group'];
+        echo "\$fd=== " . $fd . "\n";
         $res = $redis->del($fd);
         if ($res === false) {
             echo "删除用户{$user_name}({$fd})失败\n";
