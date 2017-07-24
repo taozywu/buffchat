@@ -1,4 +1,5 @@
 <?php
+
 //这个是cli运行的脚本 
 /*
   <#日期 = "2017-7-19">
@@ -23,31 +24,33 @@ if (php_sapi_name() !== 'cli') {
 }
 
 $serv = new buff\WebS("192.168.1.109", 9501);
-$redis = new \Redis();
-$redis->connect("127.0.0.1", 6379);
-if ($redis->ping() !== "+PONG") {
-    die("redis 连接失败!");
-}
 $serv->set(array(
     'daemonize'  => 0,
     'worker_num' => 2 //worker process num
 //    'log_file'      => '/home/buff/swoole.log'
 ));
+$redis = null;
+$serv->on('WorkerStart', function ($serv, $worker_id) {
+    global $redis;
+    $redis = new \Redis();
+    $redis->connect("127.0.0.1", 6379) || die("redis 连接失败");
+    echo "进程{$worker_id}的redis 连接成功!\n";
+});
+
 //回调函数 新建一个websocket连接时 触发的事件
-$serv->on('Open', function($server, $req) use($serv) {
+$serv->on('Open', function($serv, $req) {
     global $redis;
     $serv->opening($redis, $req);
 });
 //当收到用户的消息时 触发事件
-$serv->on('Message', function($server, $frame)use($serv) {
+$serv->on('Message', function($serv, $frame) {
     global $redis;
     $serv->messaging($redis, $frame);
 });
 
 //当websocket 断开连接时 触发事件
-$serv->on('Close', function($server, $fd) use($serv) {
+$serv->on('Close', function($serv, $fd) {
     global $redis;
     $serv->closing($redis, $fd);
 });
-
 $serv->start();
