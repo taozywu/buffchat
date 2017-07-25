@@ -79,7 +79,7 @@ class WebS extends \Swoole\Websocket\Server
             if (self::DELUSER === $type && $frameFd === $fd || $result["group"] !== $group) {
                 continue;
             }
-            $mes = htmlspecialchars($mes);
+            $mes = htmlspecialchars($mes, ENT_NOQUOTES);
             switch ($type) {
                 //有新用户连接通知客户增加用户
                 case self::ADDUSER:
@@ -112,7 +112,7 @@ class WebS extends \Swoole\Websocket\Server
      */
     public
             function sendToPerson(int $fd, string $mes, int $type, string $sendTo = "", string $user_name = "", \Redis $redis = null) {
-        $mes = htmlspecialchars($mes);
+        $mes = htmlspecialchars($mes, ENT_NOQUOTES);
         switch ($type) {
             case self::SENDUSERSLISTS:
                 //通知用户 当前在线用户列表
