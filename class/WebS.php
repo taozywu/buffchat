@@ -207,7 +207,7 @@ class WebS extends \Swoole\Websocket\Server
     public
             function opening(\Redis $redis, $req) {
         $redis->incr('users_num');
-        $group = $req->get['group'] || 'public';
+        $group = $req->get['group'] ?? 'public';
         $redis->hMset($req->fd, ["token" => "", "user_name" => "", "group" => $group, "ip" => $req->server['remote_addr']]);
         echo "新客户端连接: " . $req->fd . "时间:" . date("Y-n-j H:i:s") . "\n";
         $userlist = $this->getOnlineUsersList($redis, $req->get['group']);
