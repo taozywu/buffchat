@@ -27,6 +27,9 @@ $(function () {
             return;
         }
         var $mes = $("#user_input").val();
+        if ($.trim($mes) === '') {
+            return false;
+        }
         websocket.send($mes);
         $("#user_input").val("");
     });
@@ -133,6 +136,9 @@ $(function () {
     $("#sixindiv button").click(function () {
         $("#sendTo").text(sendTo);
         var $mes = $("#sixindiv textarea").val();
+        if ($.trim($mes) === '') {
+            return false;
+        }
         websocket.send("sendTo:" + sendTo + ":mes:" + $mes + ":user_name:" + selfName);
         $("#sixindiv textarea").val("");
     });
@@ -141,6 +147,10 @@ $(function () {
         $("#sendTo").text("");
     });
     $("#reqsixindiv span").click(function () {
+        $("#reqsixindiv").css("display", "none");
+        $("#sendFrom").text("");
+    });
+    $("#reqsixindiv button").click(function () {
         $("#reqsixindiv").css("display", "none");
         $("#sendFrom").text("");
     });
@@ -197,10 +207,6 @@ websocket.onmessage = function (evt) {
             break;
             //通知注册用户成功消息
         case '3':
-//            var $append = '<li>';
-//            $append += data.user_name;
-//            $append += '</li>';
-//            $(".user_list ul").append($append);
             $(".gui_user").html("<p>欢迎 " + data.user_name + "</p>");
             selfName = data.user_name;
             break;

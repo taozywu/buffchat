@@ -43,7 +43,7 @@ class WebS extends \Swoole\Websocket\Server
      *  检查用户名是否已存在
      * @param \Redis $redis redis连接对象
      * @param string $user_name 用户注册名
-     * @return bool 用户名是否可用
+     * @return bool 用户名是否已存在 true:是 false:否
      */
     public
             function checkRegisterName(\Redis $redis, string $user_name, string $reload): bool {
@@ -51,7 +51,6 @@ class WebS extends \Swoole\Websocket\Server
             $result = $redis->hGetAll($fd);
             if ($result["user_name"] === $user_name) {
                 if ($reload === "yes") {
-//                    $redis->del($fd);
                     $this->close($fd);
                     return false;
                 }
@@ -79,6 +78,7 @@ class WebS extends \Swoole\Websocket\Server
             if (self::DELUSER === $type && $frameFd === $fd || $result["group"] !== $group) {
                 continue;
             }
+            $mes = htmlspecialchars($mes);
             switch ($type) {
                 //有新用户连接通知客户增加用户
                 case self::ADDUSER:
@@ -111,6 +111,7 @@ class WebS extends \Swoole\Websocket\Server
      */
     public
             function sendToPerson(int $fd, string $mes, int $type, string $sendTo = "", string $user_name = "", \Redis $redis = null) {
+        $mes = htmlspecialchars($mes);
         switch ($type) {
             case self::SENDUSERSLISTS:
                 //通知用户 当前在线用户列表
@@ -205,7 +206,8 @@ class WebS extends \Swoole\Websocket\Server
     public
             function opening(\Redis $redis, $req) {
         $redis->incr('users_num');
-        $redis->hMset($req->fd, ["token" => "", "user_name" => "", "group" => $req->get['group']]);
+        $group = $req->get['group'] || 'public';
+        $redis->hMset($req->fd, ["token" => "", "user_name" => "", "group" => $group]);
         echo "新客户端连接: " . $req->fd . "时间:" . date("Y-n-j H:i:s") . "\n";
         $userlist = $this->getOnlineUsersList($redis, $req->get['group']);
         $this->sendToPerson($req->fd, $userlist, self::SENDUSERSLISTS);
