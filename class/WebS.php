@@ -242,7 +242,7 @@ class WebS extends \Swoole\Websocket\Server
                             return self::WARMINGSAMENAME;
                         }
                         if (count($userData) === 7) {
-                            $res = $redis->hMset($frame->fd, ["token" => $userData[1], "user_name" => $userData[3], "group" => $userData[6]]);
+                            $res = $redis->hMset($frame->fd, ["token" => $userData[1], "user_name" => $userData[3], "group" => $userData[6], "ip" => $userInfo['ip']]);
                         }
                         else {
                             $res = $redis->hMset($frame->fd, ["token" => $userData[1], "user_name" => $userData[3]]);
