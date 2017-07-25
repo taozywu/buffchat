@@ -46,11 +46,12 @@ class WebS extends \Swoole\Websocket\Server
      * @return bool 用户名是否已存在 true:是 false:否
      */
     public
-            function checkRegisterName(\Redis $redis, string $user_name, string $reload): bool {
+            function checkRegisterName(\Redis $redis, string $user_name, string $reload, string $user_ip): bool {
         foreach ($this->connections as $fd) {
             $result = $redis->hGetAll($fd);
             if ($result["user_name"] === $user_name) {
-                if ($reload === "yes") {
+                //此处只验证了是否为同一个ip,如果想更精确判断可以在写入一个sessionid到redis中,
+                if ($reload === "yes" && $result['ip'] === $user_ip) {
                     $this->close($fd);
                     return false;
                 }
@@ -207,7 +208,7 @@ class WebS extends \Swoole\Websocket\Server
             function opening(\Redis $redis, $req) {
         $redis->incr('users_num');
         $group = $req->get['group'] || 'public';
-        $redis->hMset($req->fd, ["token" => "", "user_name" => "", "group" => $group]);
+        $redis->hMset($req->fd, ["token" => "", "user_name" => "", "group" => $group, "ip" => $req->server['remote_addr']]);
         echo "新客户端连接: " . $req->fd . "时间:" . date("Y-n-j H:i:s") . "\n";
         $userlist = $this->getOnlineUsersList($redis, $req->get['group']);
         $this->sendToPerson($req->fd, $userlist, self::SENDUSERSLISTS);
@@ -236,7 +237,7 @@ class WebS extends \Swoole\Websocket\Server
                     if ($this->checkToken($frame->data)) {
                         $userData = explode(':', $frame->data);
                         //验证用户名是否存在
-                        if ($this->checkRegisterName($redis, $userData[3], $userData[4])) {
+                        if ($this->checkRegisterName($redis, $userData[3], $userData[4], $userInfo['ip'])) {
                             //警告信息,用户名已存在
                             return self::WARMINGSAMENAME;
                         }
