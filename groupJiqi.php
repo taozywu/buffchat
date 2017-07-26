@@ -28,8 +28,8 @@ else {
         <meta name="description" content=""/>
         <link rel="stylesheet" href="<?= __PUBLIC__ ?>/css/bootstrap.min.css">
         <link rel="stylesheet" href="<?= __PUBLIC__ ?>/css/style.css">
-        <title>buffge聊天室--文人雅士专区</title>
-        <script>var localGroup = "groupW";
+        <title>buffge聊天室--机器人问答专区</title>
+        <script>var localGroup = "groupJ";
 <?php
 if ($islogin) {
     echo "var isLogin=true;var localToken=\"{$token}\";var localName=\"{$_SESSION['user_name']}\";";
@@ -66,9 +66,9 @@ else {
                     </div>
                     <ul class="nav navbar-nav">
                         <li class=""><a href="/buffchat/index.php">公共聊天室</a></li>
-                        <li class="active"><a href="/buffchat/groupWen.php">文人雅士专区</a></li>
-                        <li class=""><a href="/buffchat/groupFei.php">死肥宅专区</a></li>
-                        <li class=""><a href="/buffchat/groupJiqi.php">机器人问答专区</a></li>
+                        <li class=""><a href="/buffchat/groupWen.php">文人雅士专区</a></li>
+                        <li class=""><a href="/buffchat/groupFei.php">死肥宅专区</a> </li>
+                        <li class="active"><a href="/buffchat/groupJiqi.php">机器人问答专区</a> </li>
                     </ul>
                 </div>
             </nav>

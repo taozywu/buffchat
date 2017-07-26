@@ -39,6 +39,9 @@ class WebS extends \Swoole\Websocket\Server
     //发送信息给个人
     const
             SENDTOPERSON = 10;
+    //问答
+    const
+            QUESTION = 11;
     /**
      *  检查用户名是否已存在
      * @param \Redis $redis redis连接对象
@@ -66,6 +69,7 @@ class WebS extends \Swoole\Websocket\Server
 
     /**
      * 发送消息到一个群组中
+     * @param int $frameFd  socketid
      * @param \Redis $redis redis连接对象
      * @param string $user_name 发送消息的用户名
      * @param int $type 发送消息的类型
@@ -74,12 +78,17 @@ class WebS extends \Swoole\Websocket\Server
      */
     public
             function sendToGroup(int $frameFd, \Redis $redis, string $user_name, int $type, string $mes = "", string $group = "public") {
+        if ($type === self::COMMONMESSAGE) {
+            $mes = htmlspecialchars($mes, ENT_NOQUOTES);
+            //将换行转换为br
+            $mes = nl2br($mes);
+            $mes = str_replace(["\n", "\""], ["", "\\\""], $mes);
+        }
         foreach ($this->connections as $fd) {
             $result = $redis->hGetAll($fd);
             if (self::DELUSER === $type && $frameFd === $fd || $result["group"] !== $group) {
                 continue;
             }
-            $mes = htmlspecialchars($mes, ENT_NOQUOTES);
             switch ($type) {
                 //有新用户连接通知客户增加用户
                 case self::ADDUSER:
@@ -87,14 +96,15 @@ class WebS extends \Swoole\Websocket\Server
                     break;
                 //普通消息
                 case self::COMMONMESSAGE:
-                    //将换行转换为br
-                    $mes = nl2br($mes);
-                    $mes = str_replace(["\n", '"'], ["", '\"'], $mes);
                     $this->push($fd, "{\"code\":\"2\",\"mes\":\"{$mes}\",\"user_name\":\"{$user_name}\"}");
                     break;
                 //有用户退出时删除用户列表
                 case self::DELUSER:
                     $this->push($fd, "{\"code\":\"6\",\"user\":\"{$user_name}\"}");
+                    break;
+                //有用户退出时删除用户列表
+                case self::QUESTION:
+                    $this->push($fd, "{\"code\":\"2\",\"mes\":\"{$mes}\",\"user_name\":\"{$user_name}\"}");
                     break;
             }
         }
@@ -113,6 +123,7 @@ class WebS extends \Swoole\Websocket\Server
     public
             function sendToPerson(int $fd, string $mes, int $type, string $sendTo = "", string $user_name = "", \Redis $redis = null) {
         $mes = htmlspecialchars($mes, ENT_NOQUOTES);
+        $mes = str_replace("Ø", ":", $mes);
         switch ($type) {
             case self::SENDUSERSLISTS:
                 //通知用户 当前在线用户列表
@@ -140,10 +151,11 @@ class WebS extends \Swoole\Websocket\Server
                 break;
             //发私信
             case self::SENDTOPERSON:
+                $mes = htmlspecialchars_decode($mes, ENT_NOQUOTES);
                 foreach ($this->connections as $tempfd) {
                     $user_info = $redis->hGetAll($tempfd);
                     if ($user_info['user_name'] === $sendTo) {
-                        $mes = str_replace(["\n", '"'], ["\\n", '\"'], $mes);
+                        $mes = str_replace(["\n", "\""], ['\n', "\\\""], $mes);
                         $this->push($tempfd, "{\"code\":\"1\",\"mes\":\"{$mes}\",\"form\":\"{$user_name}\"}");
                         break;
                     }
@@ -276,6 +288,13 @@ class WebS extends \Swoole\Websocket\Server
                     return self::COMMONMESSAGE;
                 }
                 return self::SENDTOPERSON;
+
+            case "quesTo":
+                if ($userInfo['token'] === "") {
+                    return self::UNLOGIN;
+                }
+                $userData = explode(':', $frame->data);
+                return self::QUESTION;
             default:
                 return self::COMMONMESSAGE;
         }
@@ -331,6 +350,17 @@ class WebS extends \Swoole\Websocket\Server
                 $mes = $userData[3];
                 $user_name = $userData[5];
                 $this->sendToPerson($frame->fd, $mes, self::SENDTOPERSON, $sendTo, $user_name, $redis);
+                break;
+            //问答专区
+            case self::QUESTION:
+                $userData = explode(':', $frame->data);
+                $ques = $userData[1];
+                $user_name = $userData[3];
+                $result = $redis->hGetAll($frame->fd);
+                $user_group = $result['group'];
+                $data = [$frame->fd, $ques, $user_name, $user_group];
+                $this->sendToGroup($frame->fd, $redis, $user_name, self::QUESTION, $ques, $user_group);
+                $this->task($data);
                 break;
         }
 

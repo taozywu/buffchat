@@ -65,7 +65,8 @@ else {
                     <ul class="nav navbar-nav">
                         <li class="active"><a href="/buffchat/index.php">公共聊天室</a></li>
                         <li class=""><a href="/buffchat/groupWen.php">文人雅士专区</a></li>
-                        <li class=""><a href="/buffchat/groupFei.php">死肥宅专区</a> </li>
+                        <li class=""><a href="/buffchat/groupFei.php">死肥宅专区</a></li>
+                        <li class=""><a href="/buffchat/groupJiqi.php">机器人问答专区</a></li>
                     </ul>
                 </div>
             </nav>

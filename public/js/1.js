@@ -30,7 +30,11 @@ $(function () {
         if ($.trim($mes) === '') {
             return false;
         }
-        websocket.send($mes);
+        if (localGroup === 'groupJ') {
+            websocket.send("quesTo:" + $mes + ":user_name:" + selfName);
+        } else {
+            websocket.send($mes);
+        }
         $("#user_input").val("");
     });
     $("#public_name").change(function () {
@@ -139,6 +143,7 @@ $(function () {
         if ($.trim($mes) === '') {
             return false;
         }
+        $mes = $mes.replace(/[\:]/g, "Ø");
         websocket.send("sendTo:" + sendTo + ":mes:" + $mes + ":user_name:" + selfName);
         $("#sixindiv textarea").val("");
     });
@@ -154,9 +159,6 @@ $(function () {
         $("#reqsixindiv").css("display", "none");
         $("#sendFrom").text("");
     });
-
-
-
 });
 
 var selfName = '';
