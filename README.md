@@ -13,7 +13,7 @@ process 下的脚本是登录验证脚本<br>
 视频显示地址：[http://www.bilibili.com/video/av12418026/](http://www.bilibili.com/video/av12418026/)
 视频中的列表刷新不正常 已修复.<br/>
 demo地址 http://www.buffge.xin/buffchat/index.php
-## demo 关闭一段时间.这几天有事.我尽量尽快重做前端,以及所有优化安全.大家到时候可以来下载新样式
+## demo 关闭一段时间.这几天有事.我尽量尽快重做前端,以及所有优化安全.大家到时候可以来下载新样式(7/28 20:22)
 
 
 ====
